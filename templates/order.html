@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css"
+          integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <title>Найти заказ</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+<h2>Введите номер заказа</h2>
+<form action="http://localhost:8080/api/v1/order" method="GET">
+    <input type="text" name="id" placeholder="Номер заказа">
+    <input type="submit" value="Отправить">
+</form>
+
+<h4>Данные о заказе:</h4>
+<ul>
+    <li><strong>ID:</strong> {{.Order.ID}}</li>
+    <li><strong>Order UID:</strong> {{.Order.OrderUID}}</li>
+    <li><strong>Track Number:</strong> {{.Order.TrackNumber}}</li>
+    <li><strong>Entry:</strong> {{.Order.Entry}}</li>
+    <li><strong>Locale:</strong> {{.Order.Locale}}</li>
+    <li><strong>Internal Signature:</strong> {{.Order.InternalSignature}}</li>
+    <li><strong>Customer ID:</strong> {{.Order.CustomerID}}</li>
+    <li><strong>Delivery Service:</strong> {{.Order.DeliveryService}}</li>
+    <li><strong>Shard Key:</strong> {{.Order.ShardKey}}</li>
+    <li><strong>SmID:</strong> {{.Order.SmID}}</li>
+    <li><strong>Date Created:</strong> {{.Order.DateCreated}}</li>
+    <li><strong>Oof Shard:</strong> {{.Order.OofShard}}</li>
+</ul>
+
+<h4>Данные о доставке</h4>
+<ul>
+    <li><strong>Name:</strong> {{.Order.Delivery.Name}}</li>
+    <li><strong>Phone:</strong> {{.Order.Delivery.Phone}}</li>
+    <li><strong>Zip:</strong> {{.Order.Delivery.Zip}}</li>
+    <li><strong>City:</strong> {{.Order.Delivery.City}}</li>
+    <li><strong>Address:</strong> {{.Order.Delivery.Address}}</li>
+    <li><strong>Region:</strong> {{.Order.Delivery.Region}}</li>
+    <li><strong>Email:</strong> {{.Order.Delivery.Email}}</li>
+</ul>
+
+<h4>Данные об оплате</h4>
+<ul>
+    <li><strong>Transaction:</strong> {{.Order.Payment.Transaction}}</li>
+    <li><strong>Request ID:</strong> {{.Order.Payment.RequestID}}</li>
+    <li><strong>Currency:</strong> {{.Order.Payment.Currency}}</li>
+    <li><strong>Provider:</strong> {{.Order.Payment.Provider}}</li>
+    <li><strong>Amount:</strong> {{.Order.Payment.Amount}}</li>
+    <li><strong>Payment Date:</strong> {{.Order.Payment.PaymentDT}}</li>
+    <li><strong>Bank:</strong> {{.Order.Payment.Bank}}</li>
+    <li><strong>Delivery Cost:</strong> {{.Order.Payment.DeliveryCost}}</li>
+    <li><strong>Goods Total:</strong> {{.Order.Payment.GoodsTotal}}</li>
+    <li><strong>Custom Fee:</strong> {{.Order.Payment.CustomFee}}</li>
+</ul>
+
+<h4>Содержимое заказа</h4>
+<table>
+    <tr>
+        <th>ChrtID</th>
+        <th>Track Number</th>
+        <th>Price</th>
+        <th>Rid</th>
+        <th>Name</th>
+        <th>Sale</th>
+        <th>Size</th>
+        <th>Total Price</th>
+        <th>NmID</th>
+        <th>Brand</th>
+        <th>Status</th>
+    </tr>
+    {{range .Order.Items}}
+    <tr>
+        <td>{{.ChrtID}}</td>
+        <td>{{.TrackNumber}}</td>
+        <td>{{.Price}}</td>
+        <td>{{.Rid}}</td>
+        <td>{{.Name}}</td>
+        <td>{{.Sale}}</td>
+        <td>{{.Size}}</td>
+        <td>{{.TotalPrice}}</td>
+        <td>{{.NmID}}</td>
+        <td>{{.Brand}}</td>
+        <td>{{.Status}}</td>
+    </tr>
+    {{end}}
+</table>
+
+</body>
+</html>
