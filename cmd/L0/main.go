@@ -3,13 +3,13 @@ package main
 import (
 	"LO/pkg/dsn"
 	"LO/pkg/handlers"
+	nats_client "LO/pkg/nats-client"
+	"LO/pkg/recovery"
 	"LO/pkg/repository"
 	"database/sql"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/nats-io/stan.go"
 	log "github.com/sirupsen/logrus"
 	"go.uber.org/zap"
 	"html/template"
@@ -19,8 +19,6 @@ import (
 const driver = "postgres"
 
 func main() {
-	templates := template.Must(template.ParseGlob("./templates/*"))
-
 	zapLogger, _ := zap.NewProduction()
 	defer func(zapLogger *zap.Logger) {
 		err := zapLogger.Sync()
@@ -42,25 +40,43 @@ func main() {
 		log.Errorf("Failed to connect to db: %s", err)
 	}
 
-	sc, err := stan.Connect("test-cluster", "client-123")
+	orderRepository := repository.NewOrderRepositoryImpl(db)
+	cacheRepository := repository.NewCacheRepositoryImpl()
+	paymentsRepository := repository.NewPaymentsRepositoryImpl(db)
+	deliveryRepository := repository.NewDeliveryRepositoryImpl(db)
+	itemRepository := repository.NewItemRepositoryImpl(db)
+
+	templates := template.Must(template.ParseGlob("./templates/*"))
+
+	orderHandler := handlers.NewOrderHandler(templates, logger, cacheRepository)
+
+	recoverService := recovery.NewRecoverService(
+		logger,
+		orderRepository,
+		cacheRepository,
+		deliveryRepository,
+		paymentsRepository,
+		itemRepository,
+	)
+
+	err = recoverService.Recover()
 	if err != nil {
-		log.Errorf("Failed connetct to NATS: %s", err)
+		log.Errorf("Failed to recover cache from db: %s", err)
 	}
 
-	subscribtion, err := sc.Subscribe("foo", func(m *stan.Msg) {
-		fmt.Printf("Received a message: %s\n", string(m.Data))
-	}, stan.DurableName("my-durable"))
-
-	if err != nil {
-		log.Errorf("Failed to subscribe: %s", err)
+	client := nats_client.NATSClient{
+		Logger:             logger,
+		OrderRepository:    orderRepository,
+		CacheRepository:    cacheRepository,
+		DeliveryRepository: deliveryRepository,
+		PaymentRepository:  paymentsRepository,
+		ItemRepository:     itemRepository,
 	}
-
-	orderRepository := repository.NewOrderRepository(db)
-	orderHandler := handlers.NewOrderHandler(templates, logger, orderRepository)
+	go client.Subscribe()
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/api/v1/order", orderHandler.GetOrder).Methods("GET")
+	r.HandleFunc("/api/orders", orderHandler.GetOrder).Methods("GET")
 
 	log.Println("server started")
 	err = http.ListenAndServe(":8080", r)

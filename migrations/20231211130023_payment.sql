@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE payments
 (
-    id            SERIAL PRIMARY KEY,
+    payments_uuid uuid PRIMARY KEY,
     transaction   VARCHAR(255),
     request_id    VARCHAR(255),
     currency      VARCHAR(3),

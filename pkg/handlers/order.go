@@ -3,70 +3,56 @@ package handlers
 import (
 	"LO/pkg/models"
 	"LO/pkg/repository"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"html/template"
 	"net/http"
-	"strconv"
 )
 
 type OrderHandler struct {
 	Tmpl            *template.Template
 	Logger          *zap.SugaredLogger
-	OrderRepository repository.Repository
+	OrderRepository repository.CacheRepository
 }
 
-func NewOrderHandler(template *template.Template, logger *zap.SugaredLogger, repository repository.Repository) *OrderHandler {
-	return &OrderHandler{
-		Tmpl:            template,
-		Logger:          logger,
-		OrderRepository: repository,
-	}
+func NewOrderHandler(tmpl *template.Template, logger *zap.SugaredLogger, orderRepository repository.CacheRepository) *OrderHandler {
+	return &OrderHandler{Tmpl: tmpl, Logger: logger, OrderRepository: orderRepository}
 }
 
 func (oh *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
-	orderID, err := strconv.Atoi(id)
+	oh.Logger.Info(r.URL.Query())
+	orderUUID, err := uuid.Parse(r.URL.Query().Get("uuid"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		e := oh.Tmpl.ExecuteTemplate(w, "error.html", struct {
+			Text string
+		}{
+			Text: err.Error(),
+		})
+
+		if e != nil {
+			http.Error(w, e.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		oh.Logger.Infof("Failed to parse id as uuid: %v", err)
 		return
 	}
-	order, err := oh.OrderRepository.GetOrder(r.Context(), orderID)
+
+	order, err := oh.OrderRepository.GetOrderByID(orderUUID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		e := oh.Tmpl.ExecuteTemplate(w, "error.html", struct {
+			Text string
+		}{
+			Text: err.Error(),
+		})
+
+		if e != nil {
+			http.Error(w, e.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		oh.Logger.Infof("Failed to get order form cache: %v", err)
 		return
-	}
-	order.ID = orderID
-	order.Items = []models.Items{
-		{
-			ID:          1,
-			OrderID:     0,
-			ChrtID:      0,
-			TrackNumber: "3234",
-			Price:       0,
-			Rid:         "234",
-			Name:        "234",
-			Sale:        0,
-			Size:        "234",
-			TotalPrice:  0,
-			NmID:        0,
-			Brand:       "234",
-			Status:      0,
-		},
-		{
-			ID:          2,
-			OrderID:     0,
-			ChrtID:      0,
-			TrackNumber: "3234",
-			Price:       0,
-			Rid:         "234",
-			Name:        "234",
-			Sale:        0,
-			Size:        "234",
-			TotalPrice:  0,
-			NmID:        0,
-			Brand:       "234",
-			Status:      0,
-		},
 	}
 
 	err = oh.Tmpl.ExecuteTemplate(w, "order.html", struct {
@@ -74,6 +60,7 @@ func (oh *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 	}{
 		Order: order,
 	})
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -2,12 +2,12 @@
 -- +goose StatementBegin
 CREATE TABLE orders
 (
-    id                 SERIAL PRIMARY KEY,
+    order_uuid         uuid PRIMARY KEY,
     order_uid          VARCHAR(255),
     track_number       VARCHAR(255),
     entry              VARCHAR(255),
-    delivery_id        INTEGER REFERENCES delivery (id),
-    payment_id         INTEGER REFERENCES payments (id),
+    delivery_id        uuid REFERENCES delivery (delivery_uuid),
+    payment_id         uuid REFERENCES payments (payments_uuid),
     locale             VARCHAR(20),
     internal_signature VARCHAR(255),
     customer_id        VARCHAR(255),

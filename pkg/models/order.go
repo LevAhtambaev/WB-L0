@@ -1,14 +1,17 @@
 package models
 
-import "time"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type Order struct {
-	ID                int       `json:"id"`
+	OrderUUID         uuid.UUID `json:"order_uuid"`
 	OrderUID          string    `json:"order_uid"`
 	TrackNumber       string    `json:"track_number"`
 	Entry             string    `json:"entry"`
-	DeliveryID        int       `json:"delivery_id"`
-	PaymentID         int       `json:"payment_id"`
+	DeliveryUUID      uuid.UUID `json:"delivery_uuid"`
+	PaymentUUID       uuid.UUID `json:"payment_uuid"`
 	Locale            string    `json:"locale"`
 	InternalSignature string    `json:"internal_signature"`
 	CustomerID        string    `json:"customer_id"`
@@ -20,13 +23,13 @@ type Order struct {
 }
 
 type OrderJSON struct {
-	ID                int       //`json:"id"`
+	OrderUUID         uuid.UUID `json:"order_uuid"`
 	OrderUID          string    `json:"order_uid"`
 	TrackNumber       string    `json:"track_number"`
 	Entry             string    `json:"entry"`
 	Delivery          Delivery  `json:"delivery"`
 	Payment           Payment   `json:"payment"`
-	Items             []Items   `json:"items"`
+	Items             []Item    `json:"items"`
 	Locale            string    `json:"locale"`
 	InternalSignature string    `json:"internal_signature"`
 	CustomerID        string    `json:"customer_id"`

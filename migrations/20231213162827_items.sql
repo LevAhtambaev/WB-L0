@@ -2,8 +2,8 @@
 -- +goose StatementBegin
 CREATE TABLE items
 (
-    id           SERIAL PRIMARY KEY,
-    order_id     INTEGER REFERENCES orders (id),
+    item_uuid    uuid PRIMARY KEY,
+    order_uuid   uuid REFERENCES orders (order_uuid),
     chrt_id      INTEGER,
     track_number VARCHAR(255),
     price        INTEGER,
